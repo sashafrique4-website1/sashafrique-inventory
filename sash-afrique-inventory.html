@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sash Afrique — Plain Sash Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0B;
+    --bg-raised:#concat;
+    --surface:#15151700;
+    --surface-1:#141416;
+    --surface-2:#1B1B1F;
+    --surface-3:#222226;
+    --border:#28282D;
+    --border-soft:#1F1F23;
+    --white:#F6F4EF;
+    --ink:#F6F4EF;
+    --ink-dim:#A6A49D;
+    --ink-faint:#6E6C68;
+    --gold:#FAB202;
+    --gold-soft:rgba(250,178,2,0.14);
+    --gold-soft-2:rgba(250,178,2,0.28);
+    --good:#33C77E;
+    --good-bg:rgba(51,199,126,0.12);
+    --warn:#FAB202;
+    --warn-bg:rgba(250,178,2,0.14);
+    --bad:#FF5B4E;
+    --bad-bg:rgba(255,91,78,0.14);
+    --radius:14px;
+    --radius-sm:9px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 16px 32px -12px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+    --shadow-lg: 0 28px 60px -16px rgba(0,0,0,0.65);
+    --shadow-gold: 0 8px 20px -6px rgba(250,178,2,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    background-image:
+      radial-gradient(900px 480px at 14% -8%, rgba(250,178,2,0.07), transparent 60%),
+      radial-gradient(700px 420px at 100% 0%, rgba(255,255,255,0.04), transparent 55%);
+    background-attachment:fixed;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{font-family:'Playfair Display',serif; margin:0; letter-spacing:-0.01em; color:var(--white);}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  ::selection{background:var(--gold); color:#0A0A0B;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#2A2A2E; border-radius:10px; border:2px solid var(--bg);}
+
+  svg{display:block;}
+  .icon{width:17px; height:17px; flex-shrink:0;}
+
+  /* ---------- Kente weave signature ---------- */
+  .weave-strip{
+    height:6px;
+    width:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      #0A0A0B 0 10px,
+      var(--gold) 10px 16px,
+      #0A0A0B 16px 20px,
+      #4A4A4C 20px 24px,
+      #0A0A0B 24px 28px,
+      var(--gold) 28px 38px
+    );
+    opacity:0.9;
+  }
+  .weave-gauge{
+    position:relative;
+    height:14px;
+    border-radius:7px;
+    background:var(--surface-3);
+    overflow:hidden;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .weave-gauge__fill{
+    position:absolute; inset:0 auto 0 0; height:100%;
+    background:repeating-linear-gradient(
+      90deg,
+      #0A0A0B 0 7px,
+      var(--gold) 7px 11px,
+      #0A0A0B 11px 13px,
+      #5b5b5d 13px 15px,
+      #0A0A0B 15px 16px,
+      var(--gold) 16px 22px
+    );
+    transition: width .6s cubic-bezier(.16,1,.3,1);
+  }
+
+  /* ---------- App shell ---------- */
+  .app{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:252px; flex-shrink:0;
+    background:#0C0C0D;
+    border-right:1px solid var(--border-soft);
+    color:var(--white);
+    display:flex; flex-direction:column;
+    position:fixed; top:0; bottom:0; left:0;
+    z-index:40;
+    transition: transform .25s ease;
+  }
+  .sidebar__brand{
+    padding:26px 22px 18px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .sidebar__brand .mark{
+    font-family:'Playfair Display',serif;
+    font-size:20px; font-weight:700; letter-spacing:0.01em;
+    color:var(--white);
+  }
+  .sidebar__brand .mark span{color:var(--gold);}
+  .sidebar__brand .sub{
+    font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:600;
+  }
+
+  .nav{padding:14px 12px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; flex:1;}
+  .nav__label{
+    font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#55554F; font-weight:600; padding:16px 12px 6px;
+  }
+  .nav__item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px; border-radius:10px;
+    color:#B4B2AB; font-size:13.5px; font-weight:500;
+    cursor:pointer; border:none; background:transparent; width:100%; text-align:left;
+    transition: background .15s ease, color .15s ease;
+  }
+  .nav__item svg{width:17px; height:17px; flex-shrink:0; opacity:0.85;}
+  .nav__item:hover{background:var(--surface-1); color:var(--white);}
+  .nav__item.active{background:var(--surface-2); color:var(--white); box-shadow: inset 2px 0 0 var(--gold);}
+  .nav__item .count{
+    margin-left:auto; font-size:10.5px; font-family:'IBM Plex Mono',monospace;
+    background:var(--surface-3); color:#E7C465; padding:1px 7px; border-radius:20px;
+  }
+  .nav__item.alert .count{background:var(--bad); color:#fff;}
+
+  .sidebar__footer{
+    padding:16px; border-top:1px solid var(--border-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),#e08b1c);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-weight:700; font-size:13px; color:#0A0A0B;
+    flex-shrink:0;
+  }
+  .sidebar__footer .who{font-size:12.5px; color:var(--ink); font-weight:600;}
+  .sidebar__footer .role{font-size:10.5px; color:var(--ink-faint);}
+
+  .menu-toggle{
+    display:none; position:fixed; top:16px; left:16px; z-index:50;
+    width:38px; height:38px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border);
+    color:var(--white); align-items:center; justify-content:center; box-shadow:var(--shadow-md);
+  }
+
+  .main{flex:1; margin-left:252px; min-width:0;}
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    background:rgba(10,10,11,0.78); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border-soft);
+    padding:18px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .topbar h1{font-size:23px; font-weight:700;}
+  .topbar .eyebrow{
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-faint); font-weight:600;
+    margin-bottom:3px;
+  }
+  .topbar__right{display:flex; align-items:center; gap:10px;}
+  .search-box{
+    display:flex; align-items:center; gap:8px;
+    background:var(--surface-1); border:1px solid var(--border); border-radius:10px;
+    padding:8px 12px; min-width:230px;
+  }
+  .search-box input{border:none; outline:none; background:transparent; font-size:13px; width:100%; font-family:'Inter',sans-serif; color:var(--ink);}
+  .search-box input::placeholder{color:var(--ink-faint);}
+  .search-box svg{width:15px; height:15px; color:var(--ink-faint); flex-shrink:0;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 16px; border-radius:10px; font-size:13.5px; font-weight:600;
+    border:1px solid var(--border); cursor:pointer; transition: all .15s ease;
+    background:var(--surface-1); color:var(--ink); white-space:nowrap;
+  }
+  .btn svg{width:15px; height:15px;}
+  .btn:hover{transform:translateY(-1px); box-shadow:var(--shadow-sm); background:var(--surface-2);}
+  .btn-primary{background:var(--white); color:#0A0A0B; border-color:var(--white);}
+  .btn-primary:hover{background:#ddd9d0;}
+  .btn-gold{background:var(--gold); color:#1A1300; border-color:var(--gold); box-shadow:var(--shadow-gold);}
+  .btn-gold:hover{background:#ffc01a;}
+  .btn-ghost{background:transparent; border-color:transparent;}
+  .btn-ghost:hover{background:var(--surface-2); box-shadow:none; transform:none;}
+  .btn-sm{padding:6px 11px; font-size:12.5px;}
+  .btn-danger{color:var(--bad); border-color:rgba(255,91,78,0.3);}
+  .btn-danger:hover{background:var(--bad-bg);}
+
+  .view{padding:26px 32px 60px; max-width:1400px;}
+  .view{display:none;}
+  .view.active{display:block; animation: fadein .35s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  /* ---------- Cards / grid ---------- */
+  .card{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+  }
+  .section-title{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+    margin: 34px 0 14px;
+  }
+  .section-title h2{font-size:18px; font-weight:700;}
+  .section-title .hint{font-size:12px; color:var(--ink-faint);}
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:14px;
+  }
+  .stat-card {
+    padding:18px 18px 16px; position:relative; overflow:hidden;
+  }
+  .stat-card .top-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .stat-card .icon-box{
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface-3); color:var(--ink-dim);
+  }
+  .stat-card .icon-box svg{width:16px; height:16px;}
+  .stat-card .label{font-size:11.5px; color:var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;}
+  .stat-card .value{font-family:'Playfair Display',serif; font-size:30px; font-weight:700; line-height:1; margin-top:2px; color:var(--white);}
+  .stat-card .delta{font-size:11.5px; margin-top:8px; font-weight:600; color:var(--ink-dim);}
+  .stat-card .delta.up{color:var(--good);}
+  .stat-card .delta.flag{color:var(--bad);}
+  .stat-card.accent{background:linear-gradient(160deg, #1c1606, var(--surface-1) 60%); border-color:var(--gold-soft-2);}
+  .stat-card.accent .label{color:#cdae5c;}
+  .stat-card.accent .value{color:var(--gold);}
+  .stat-card.accent .icon-box{background:var(--gold-soft); color:var(--gold);}
+  .stat-card.accent .delta{color:#cdae5c;}
+
+  .grid-2{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:stretch;}
+
+  .panel{padding:20px 22px;}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .panel-head h3{font-size:15px; font-weight:700;}
+  .panel-head .tag{font-size:11px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;}
+
+  /* Low stock list */
+  .low-stock-row{
+    display:flex; align-items:center; gap:12px; padding:10px 0;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .low-stock-row:last-child{border-bottom:none;}
+  .low-stock-row .swatch{
+    width:36px; height:36px; border-radius:8px; flex-shrink:0; object-fit:cover;
+    background:var(--surface-3); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Playfair Display',serif; font-weight:700; font-size:12px;
+    position:relative; overflow:hidden;
+  }
+  .low-stock-row .swatch img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .low-stock-row .meta{flex:1; min-width:0;}
+  .low-stock-row .name{font-size:13.5px; font-weight:600; color:var(--white);}
+  .low-stock-row .weaver{font-size:11.5px; color:var(--ink-faint);}
+  .pill{
+    font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; letter-spacing:0.02em;
+    font-family:'IBM Plex Mono',monospace; white-space:nowrap;
+  }
+  .pill.bad{background:var(--bad-bg); color:var(--bad);}
+  .pill.warn{background:var(--warn-bg); color:var(--warn);}
+  .pill.good{background:var(--good-bg); color:var(--good);}
+
+  /* Weaver leaderboard */
+  .weaver-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-soft);}
+  .weaver-row:last-child{border-bottom:none;}
+  .weaver-row .rank{
+    font-family:'Playfair Display',serif; font-weight:700; font-size:15px; color:var(--ink-faint); width:18px;
+  }
+  .weaver-row .av{
+    width:32px; height:32px; border-radius:50%; background:var(--surface-3); border:1px solid var(--border); color:var(--white);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;
+  }
+  .weaver-row .name{font-size:13.5px; font-weight:600; flex:1; color:var(--white);}
+  .weaver-row .qty{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--gold);}
+
+  /* Transactions table */
+  table{width:100%; border-collapse:collapse;}
+  th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.07em;
+    color:var(--ink-faint); font-weight:700; padding:10px 14px; border-bottom:1px solid var(--border);
+  }
+  td{padding:12px 14px; font-size:13px; border-bottom:1px solid var(--border-soft); vertical-align:middle; color:var(--ink-dim);}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  .action-tag{
+    font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .action-tag.in{background:var(--good-bg); color:var(--good);}
+  .action-tag.out{background:var(--bad-bg); color:var(--bad);}
+  .action-tag.adj{background:var(--warn-bg); color:var(--warn);}
+  .action-tag.new{background:rgba(140,150,255,0.14); color:#9AA3FF;}
+
+  /* Charts (hand-rolled SVG) */
+  .chart-wrap{padding:20px 22px 14px;}
+  .bar-chart{display:flex; align-items:flex-end; gap:10px; height:170px; padding-top:10px;}
+  .bar-chart .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end;}
+  .bar-chart .bar{
+    width:100%; max-width:30px; border-radius:6px 6px 3px 3px;
+    background:linear-gradient(180deg, var(--gold), #b87f00);
+    position:relative; transition: height .6s cubic-bezier(.16,1,.3,1);
+  }
+  .bar-chart .bar-val{font-size:10px; font-family:'IBM Plex Mono',monospace; color:var(--ink-dim); font-weight:600;}
+  .bar-chart .bar-lab{font-size:10.5px; color:var(--ink-faint); font-weight:600;}
+
+  .donut-wrap{display:flex; align-items:center; gap:20px; justify-content:center;}
+  .donut-legend{display:flex; flex-direction:column; gap:9px;}
+  .donut-legend .li{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-dim);}
+  .donut-legend .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+  .donut-legend b{font-family:'IBM Plex Mono',monospace; margin-left:auto; padding-left:14px; color:var(--white);}
+
+  /* Pattern inventory */
+  .toolbar{
+    display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  .select, .input{
+    border:1px solid var(--border); background:var(--surface-1); border-radius:10px; padding:9px 12px;
+    font-size:13px; font-family:'Inter',sans-serif; outline:none; color:var(--ink);
+  }
+  .select:focus, .input:focus{border-color:var(--gold);}
+
+  .pattern-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px;
+  }
+  .pattern-card{
+    overflow:hidden; cursor:default; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .pattern-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:#36363c;}
+  .pattern-card .img-wrap{
+    height:130px; width:100%; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface-3);
+  }
+  .pattern-card .img-wrap img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    transition: transform .4s ease;
+  }
+  .pattern-card:hover .img-wrap img{transform:scale(1.05);}
+  .pattern-card .img-wrap .initials{
+    font-family:'Playfair Display',serif; font-weight:700; font-size:26px; color:rgba(255,255,255,0.92);
+    z-index:2; letter-spacing:0.02em; display:none;
+  }
+  .pattern-card .img-wrap.img-fallback .initials{display:block;}
+  .pattern-card .img-wrap::after{
+    content:""; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55) 100%);
+  }
+  .pattern-card .body{padding:13px 14px 15px;}
+  .pattern-card .pname{font-size:14px; font-weight:700; margin-bottom:7px; color:var(--white);}
+  .pattern-card .qty-row{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;}
+  .pattern-card .qty-row .n{font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:var(--white);}
+  .pattern-card .qty-row .u{font-size:10.5px; color:var(--ink-faint);}
+
+  .empty-state{
+    text-align:center; padding:60px 20px; color:var(--ink-faint);
+  }
+  .empty-state svg{width:38px; height:38px; margin-bottom:12px; opacity:0.5;}
+  .empty-state p{font-size:13.5px; max-width:320px; margin:6px auto 0;}
+
+  /* Forms */
+  .form-card{padding:28px 30px; max-width:620px;}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .field{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
+  .field.full{grid-column:1 / -1;}
+  .field label{font-size:12.5px; font-weight:600; color:var(--ink);}
+  .field .req{color:var(--bad);}
+  .field .field-hint{font-size:11.5px; color:var(--ink-faint); margin-top:-2px;}
+  .field input, .field select, .field textarea{
+    border:1px solid var(--border); border-radius:10px; padding:11px 13px; font-size:13.5px;
+    font-family:'Inter',sans-serif; outline:none; background:var(--surface-2); color:var(--ink);
+    color-scheme: dark;
+  }
+  .field input::placeholder, .field textarea::placeholder{color:var(--ink-faint);}
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--gold); background:var(--surface-3);}
+  .field textarea{resize:vertical; min-height:70px;}
+  .form-actions{display:flex; align-items:center; gap:10px; margin-top:6px; justify-content:flex-end;}
+  .form-foot-note{font-size:12px; color:var(--ink-faint); margin-top:18px; padding-top:16px; border-top:1px dashed var(--border);}
+  .stock-preview{
+    display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:10px;
+    background:var(--surface-2); border:1px solid var(--border); font-size:12.5px; margin-bottom:16px; color:var(--ink-dim);
+  }
+  .stock-preview .swatch{width:30px; height:30px; border-radius:7px; flex-shrink:0;}
+  .stock-preview b{font-family:'IBM Plex Mono',monospace; color:var(--white);}
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; z-index:100;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--white); padding:14px 18px; border-radius:11px;
+    display:flex; align-items:center; gap:11px; box-shadow:var(--shadow-lg);
+    transform:translateY(20px); opacity:0; pointer-events:none; transition: all .35s cubic-bezier(.16,1,.3,1);
+    max-width:340px;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast .ic{width:30px; height:30px; border-radius:50%; background:var(--gold); color:#1A1300; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .toast .ic svg{width:15px; height:15px;}
+  .toast .msg b{display:block; font-size:13px; margin-bottom:1px;}
+  .toast .msg span{font-size:11.5px; color:var(--ink-faint);}
+
+  /* Weaver management */
+  .weaver-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px;}
+  .weaver-card{padding:18px; display:flex; gap:13px; align-items:flex-start; position:relative;}
+  .wcard-delete{
+    position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface-2); color:var(--ink-faint);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all .15s ease;
+  }
+  .wcard-delete svg{width:14px; height:14px;}
+  .wcard-delete:hover{color:var(--bad); border-color:rgba(255,91,78,0.4); background:var(--bad-bg);}
+  .wcard-delete.armed{background:var(--bad); color:#fff; border-color:var(--bad);}
+  .weaver-card .av-lg{
+    width:44px; height:44px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,var(--surface-3),#000); color:var(--gold); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; font-size:16px;
+  }
+  .weaver-card .winfo{flex:1; min-width:0;}
+  .weaver-card .wname{font-size:14.5px; font-weight:700; margin-bottom:2px; color:var(--white);}
+  .weaver-card .wstatus{font-size:11px; color:var(--good); font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:5px;}
+  .weaver-card .wstatus::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--good); display:inline-block;}
+  .weaver-card .wstats{display:flex; gap:18px;}
+  .weaver-card .wstat .n{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:16px; color:var(--white);}
+  .weaver-card .wstat .l{font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em;}
+
+  /* Pattern management table */
+  .pm-row{display:flex; align-items:center; gap:14px; padding:12px 14px; border-bottom:1px solid var(--border-soft);}
+  .pm-row:last-child{border-bottom:none;}
+  .pm-row .thumb{width:42px; height:42px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Playfair Display',serif; font-weight:700; font-size:14px; position:relative; overflow:hidden; background:var(--surface-3);}
+  .pm-row .thumb img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .pm-row .pminfo{flex:1; min-width:0;}
+  .pm-row .pmname{font-size:13.5px; font-weight:600; color:var(--white);}
+  .pm-row .pmmeta{font-size:11.5px; color:var(--ink-faint);}
+  .pm-row .pmactions{display:flex; gap:6px;}
+  .badge-archived{font-size:10px; font-weight:700; color:var(--ink-faint); background:var(--surface-3); padding:2px 8px; border-radius:20px; margin-left:8px;}
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.66); z-index:200;
+    display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(3px);
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:16px; width:100%; max-width:460px;
+    box-shadow:var(--shadow-lg); overflow:hidden; animation: modalin .25s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes modalin{from{opacity:0; transform:scale(.96) translateY(8px);} to{opacity:1; transform:none;}}
+  .modal-head{padding:20px 22px 14px; display:flex; align-items:center; justify-content:space-between;}
+  .modal-head h3{font-size:16px; font-weight:700;}
+  .modal-close{width:28px; height:28px; border-radius:50%; border:none; background:var(--surface-3); color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .modal-body{padding:0 22px 22px;}
+  .modal-foot{padding:16px 22px 22px; display:flex; gap:10px; justify-content:flex-end;}
+
+  .field-row{display:flex; gap:12px;}
+  .field-row .field{flex:1;}
+
+  .hist-table-wrap{overflow-x:auto;}
+
+  .footer-credit{
+    text-align:center; padding:30px 0 10px; font-size:11px; color:var(--ink-faint);
+  }
+  .footer-credit .weave-strip{max-width:160px; margin:0 auto 12px; opacity:0.6;}
+
+  @media (max-width: 1180px){
+    .stat-grid{grid-template-columns:repeat(3,1fr);}
+    .grid-2{grid-template-columns:1fr;}
+  }
+  @media (max-width: 880px){
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-left:0;}
+    .menu-toggle{display:flex;}
+    .topbar{padding:16px 18px 16px 64px;}
+    .view{padding:20px 18px 50px;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+    .search-box{min-width:0; flex:1;}
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="mark">Sash <span>Afrique</span></div>
+      <div class="sub">Plain Sash Inventory</div>
+    </div>
+    <div class="weave-strip"></div>
+    <nav class="nav">
+      <div class="nav__label">Overview</div>
+      <button class="nav__item active" data-view="dashboard">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.6"/><rect x="14" y="3" width="7" height="5" rx="1.6"/><rect x="14" y="12" width="7" height="9" rx="1.6"/><rect x="3" y="16" width="7" height="5" rx="1.6"/></svg>
+        Dashboard
+      </button>
+      <button class="nav__item" data-view="inventory">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 2.4 21.6 7l-9.1 4.6L3.4 7z"/><path d="M3.4 7v10l9.1 4.6 9.1-4.6V7"/><path d="M12.5 11.6v10"/></svg>
+        Pattern Inventory
+        <span class="count" id="navInventoryCount">0</span>
+      </button>
+
+      <div class="nav__label">Record</div>
+      <button class="nav__item" data-view="addproduction">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><line x1="12" y1="7.8" x2="12" y2="16.2"/><line x1="7.8" y1="12" x2="16.2" y2="12"/></svg>
+        Add Production
+      </button>
+      <button class="nav__item" data-view="recordusage">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><line x1="7.8" y1="12" x2="16.2" y2="12"/></svg>
+        Record Usage
+      </button>
+
+      <div class="nav__label">Manage</div>
+      <button class="nav__item" data-view="weavers">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.4 20.2c0-3.8 3-6.5 6.6-6.5s6.6 2.7 6.6 6.5"/><circle cx="17.6" cy="8.6" r="2.7"/><path d="M16 13.9c2.8.5 4.6 2.7 4.6 5.6"/></svg>
+        Weavers
+        <span class="count" id="navWeaverCount">0</span>
+      </button>
+      <button class="nav__item" data-view="patterns">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 0-18 7 7 0 0 1 7 7c0 1.7-1.1 2.6-2.6 2.6h-1.9c-1.1 0-2 .9-2 2 0 .6.3 1.1.6 1.5.4.5.6 1 .6 1.6 0 1.8-1.5 3.3-3.7 3.3Z"/><circle cx="7.6" cy="11.2" r="1" fill="currentColor" stroke="none"/><circle cx="10.2" cy="7.4" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="7.8" r="1" fill="currentColor" stroke="none"/></svg>
+        Pattern Management
+      </button>
+      <button class="nav__item" data-view="history">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><polyline points="3.5 5 3.5 9.5 8 9.5"/><path d="M12 7.5V12l3.2 2"/></svg>
+        Transaction History
+      </button>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="avatar">EB</div>
+      <div>
+        <div class="who">Enoch K. Boateng</div>
+        <div class="role">Founder · Admin</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow">Today · <span id="todayDate"></span></div>
+          <h1>Dashboard</h1>
+        </div>
+        <div class="topbar__right">
+          <button class="btn" data-goto="recordusage">Record usage</button>
+          <button class="btn btn-gold" data-goto="addproduction">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add production
+          </button>
+        </div>
+      </div>
+
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="grid-2" style="margin-top:18px;">
+          <div class="card panel">
+            <div class="panel-head">
+              <h3>Stock requiring attention</h3>
+              <span class="tag" id="lowStockTag"></span>
+            </div>
+            <div id="lowStockList"></div>
+          </div>
+
+          <div class="card panel">
+            <div class="panel-head">
+              <h3>Top producing weavers</h3>
+              <span class="tag">This month</span>
+            </div>
+            <div id="weaverLeaderboard"></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="card chart-wrap">
+            <div class="panel-head" style="margin-bottom:4px;">
+              <h3>Monthly production</h3>
+              <span class="tag">Last 6 months</span>
+            </div>
+            <div class="bar-chart" id="productionChart"></div>
+          </div>
+          <div class="card chart-wrap">
+            <div class="panel-head" style="margin-bottom:4px;">
+              <h3>Stock by status</h3>
+              <span class="tag" id="totalStockTag"></span>
+            </div>
+            <div class="donut-wrap" id="stockDonut"></div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Recent transactions</h2>
+          <span class="hint">Latest movements across all patterns</span>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Date</th><th>Pattern</th><th>Action</th><th>Quantity</th><th>Weaver</th></tr></thead>
+            <tbody id="recentTxBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- PATTERN INVENTORY ---------- -->
+    <section class="view" id="view-inventory">
+      <div class="topbar">
+        <div><div class="eyebrow">Stock on hand</div><h1>Pattern Inventory</h1></div>
+        <div class="topbar__right">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="invSearch" placeholder="Search patterns…">
+          </div>
+        </div>
+      </div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <div class="toolbar">
+          <select class="select" id="invFilterStatus">
+            <option value="all">All statuses</option>
+            <option value="Available">Available</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+          <select class="select" id="invSort">
+            <option value="name-asc">Name (A–Z)</option>
+            <option value="name-desc">Name (Z–A)</option>
+            <option value="qty-desc">Quantity (high–low)</option>
+            <option value="qty-asc">Quantity (low–high)</option>
+          </select>
+          <span class="hint mono" id="invResultCount" style="margin-left:auto; color:var(--ink-faint); font-size:12px;"></span>
+        </div>
+        <div class="pattern-grid" id="patternGrid"></div>
+      </div>
+    </section>
+
+    <!-- ---------- ADD PRODUCTION ---------- -->
+    <section class="view" id="view-addproduction">
+      <div class="topbar"><div><div class="eyebrow">Stock in</div><h1>Add Production</h1></div></div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <div class="card form-card">
+          <p style="font-size:12.5px; color:var(--ink-faint); margin:-6px 0 18px;">
+            Log plain sashes received from an outsourced weaver. This increases stock for the chosen pattern.
+          </p>
+          <form id="formAddProduction">
+            <div class="form-grid">
+              <div class="field">
+                <label>Date <span class="req">*</span></label>
+                <input type="date" id="apDate" required>
+              </div>
+              <div class="field">
+                <label>Weaver <span class="req">*</span></label>
+                <select id="apWeaver" required></select>
+              </div>
+              <div class="field full">
+                <label>Pattern <span class="req">*</span></label>
+                <select id="apPattern" required></select>
+              </div>
+              <div class="field full">
+                <label>Quantity supplied <span class="req">*</span></label>
+                <input type="number" id="apQty" min="1" step="1" placeholder="e.g. 10" required>
+              </div>
+            </div>
+            <div class="stock-preview" id="apPreview"></div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-ghost" data-goto="dashboard">Cancel</button>
+              <button type="submit" class="btn btn-gold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add to stock
+              </button>
+            </div>
+          </form>
+          <div class="form-foot-note">Each entry is logged in Transaction History as <b>Production Added</b> and updates the weaver's monthly and lifetime totals.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- RECORD USAGE ---------- -->
+    <section class="view" id="view-recordusage">
+      <div class="topbar"><div><div class="eyebrow">Stock out</div><h1>Record Usage</h1></div></div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <div class="card form-card">
+          <p style="font-size:12.5px; color:var(--ink-faint); margin:-6px 0 18px;">
+            Log plain sashes sent out to embroidery partners. This decreases stock for the chosen pattern.
+          </p>
+          <form id="formRecordUsage">
+            <div class="form-grid">
+              <div class="field">
+                <label>Date <span class="req">*</span></label>
+                <input type="date" id="ruDate" required>
+              </div>
+              <div class="field">
+                <label>Pattern <span class="req">*</span></label>
+                <select id="ruPattern" required></select>
+              </div>
+              <div class="field full">
+                <label>Quantity used <span class="req">*</span></label>
+                <input type="number" id="ruQty" min="1" step="1" placeholder="e.g. 2" required>
+              </div>
+              <div class="field full">
+                <label>Notes</label>
+                <textarea id="ruNotes" placeholder="e.g. Sent to Ama's Embroidery for UPSA Class of 2026 batch"></textarea>
+              </div>
+            </div>
+            <div class="stock-preview" id="ruPreview"></div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-ghost" data-goto="dashboard">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Send to embroidery
+              </button>
+            </div>
+          </form>
+          <div class="form-foot-note">Stock can never go below zero — the form will stop you if the quantity exceeds what's on hand.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- WEAVERS ---------- -->
+    <section class="view" id="view-weavers">
+      <div class="topbar">
+        <div><div class="eyebrow">Outsourced partners</div><h1>Weaver Management</h1></div>
+        <div class="topbar__right">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="weaverSearch" placeholder="Search weavers…">
+          </div>
+          <button class="btn btn-gold" id="addWeaverBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add weaver
+          </button>
+        </div>
+      </div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <p style="font-size:12.5px; color:var(--ink-faint); margin:-10px 0 18px;">Tap the bin icon on a weaver's card to remove them — tap once to arm it, again to confirm. Past transactions keep the weaver's name on record.</p>
+        <div class="toolbar">
+          <select class="select" id="weaverFilter">
+            <option value="all">All weavers</option>
+            <option value="active">Active this month</option>
+            <option value="idle">No production this month</option>
+          </select>
+          <span class="hint mono" id="weaverResultCount" style="margin-left:auto; color:var(--ink-faint); font-size:12px;"></span>
+        </div>
+        <div class="weaver-grid" id="weaverGrid"></div>
+      </div>
+    </section>
+
+    <!-- ---------- PATTERN MANAGEMENT ---------- -->
+    <section class="view" id="view-patterns">
+      <div class="topbar">
+        <div><div class="eyebrow">Catalogue</div><h1>Pattern Management</h1></div>
+        <div class="topbar__right">
+          <button class="btn btn-gold" id="addPatternBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add pattern
+          </button>
+        </div>
+      </div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <p style="font-size:12.5px; color:var(--ink-faint); margin:-10px 0 18px;">New patterns are added here as they're approved. Archiving keeps history without showing the pattern on the inventory or production forms.</p>
+        <div class="card" id="patternMgmtList"></div>
+      </div>
+    </section>
+
+    <!-- ---------- TRANSACTION HISTORY ---------- -->
+    <section class="view" id="view-history">
+      <div class="topbar">
+        <div><div class="eyebrow">Full ledger</div><h1>Transaction History</h1></div>
+        <div class="topbar__right">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="histSearch" placeholder="Search pattern or weaver…">
+          </div>
+        </div>
+      </div>
+      <div class="view-content" style="padding:26px 32px 10px;">
+        <div class="toolbar">
+          <select class="select" id="histFilterAction">
+            <option value="all">All actions</option>
+            <option value="Production Added">Production Added</option>
+            <option value="Stock Used">Stock Used</option>
+            <option value="Stock Adjustment">Stock Adjustment</option>
+            <option value="Pattern Added">Pattern Added</option>
+          </select>
+          <span class="hint mono" id="histResultCount" style="margin-left:auto; color:var(--ink-faint); font-size:12px;"></span>
+        </div>
+        <div class="card hist-table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Action</th><th>Pattern</th><th>Quantity</th><th>Weaver</th><th>Notes</th></tr></thead>
+            <tbody id="histBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="footer-credit">
+        <div class="weave-strip"></div>
+        Sash Afrique · Plain Sash Production &amp; Inventory Tracker — Prototype v1
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<div class="modal-backdrop" id="patternModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="patternModalTitle">Add pattern</h3>
+      <button class="modal-close" id="patternModalClose">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Pattern name <span class="req">*</span></label>
+        <input type="text" id="pmName" placeholder="e.g. Kwegyir Aggrey">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Starting quantity</label>
+          <input type="number" id="pmQty" min="0" step="1" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Accent colour</label>
+          <select id="pmColor">
+            <option value="0">Obsidian</option>
+            <option value="1">Gold</option>
+            <option value="2">Forest</option>
+            <option value="3">Crimson</option>
+            <option value="4">Indigo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Pattern image</label>
+        <input type="file" id="pmImage" accept="image/*">
+        <span class="field-hint">Optional — a monogram tile is used if no image is uploaded.</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="pmCancel">Cancel</button>
+      <button class="btn btn-gold" id="pmSave">Save pattern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="weaverModalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add weaver</h3>
+      <button class="modal-close" id="weaverModalClose">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Weaver name <span class="req">*</span></label>
+        <input type="text" id="wmName" placeholder="e.g. Adjoa">
+      </div>
+      <span class="field-hint">Weavers are outsourced — only the name is stored, no contact or contract details.</span>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="wmCancel">Cancel</button>
+      <button class="btn btn-gold" id="wmSave">Save weaver</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="ic">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="msg"><b id="toastTitle">Saved</b><span id="toastSub">Change recorded</span></div>
+</div>
+
+<script>
+(function(){
+
+  /* ============================================================
+     SAMPLE DATA
+     Pattern photography is pulled directly from Sash Afrique's
+     live Graduations catalogue (sashafrique.com/sashes/graduations).
+     Filenames below were extracted from that page's markup, so
+     these are the brand's real product photos, with a graceful
+     monogram fallback if a file ever moves.
+  ============================================================ */
+  const COLORS = ['#16161A','#9A6E00','#1F4631','#6E2118','#272A52'];
+
+  // Exact filenames extracted from Sash Afrique's live Graduations catalogue page —
+  // every one of the 42 patterns on that page (base editions + premium editions),
+  // confirmed per-pattern from the page's own markup, not guessed.
+  const PATTERN_IMAGE_FILES = {
+    'Chinua Achebe': 'Chinua_Achebe.jpeg',
+    'Haile Selassie': 'Haile_Selassie.jpeg',
+    'Kofi Annan': 'Kofi_Annan.jpeg',
+    'Kwame Nkrumah': 'Kwame_Nkrumah.jpeg',
+    'Malcom X': 'Malcom_X.jpeg',
+    'Nelson Mandela': 'Nelson_Mandela.jpeg',
+    'Patrice Lumumba': 'Patrice_Lumumba.jpeg',
+    'Thabo Mbeki': 'Thabo_Mbeki.jpeg',
+    'Thomas Sankara': 'Thomas_Sankara.jpeg',
+    'Yaa Asantewaa': 'Yaa_Asantewaa.jpeg',
+    'Ellen Johnson Sirleaf': 'Ellen_Johnson_Sirleaf.jpeg',
+    'Tetteh Quarshie': 'Tetteh_Quarshie.jpeg',
+    'Jomo Kenyatta': 'Jomo_Kenyatta.jpeg',
+    'Julius Nyerere': 'Julius_Nyerere.jpeg',
+    'Robert Mugabe': 'Robert_Mugabe_.jpg',
+    'Strive Masiyiwa': 'Strive_Masiyiwa.jpeg',
+    'Wole Soyinka': 'Wole_Soyinka.jpeg',
+    'Premium Thomas Sankara': 'Premium_Thomas_Sankara.jpeg',
+    'Premium Kofi Annan': 'Premium_Kofi_Annan.jpeg',
+    'Premium Malcom X': 'Premium_Malcom_X.jpeg',
+    'Premium Yaa Asantewaa': 'Premium_Yaa_Asantewaa.jpeg',
+    'Premium Patrice Lumumba': 'Premium_Patrice_Lumumba.jpeg',
+    'Premium Kente': 'Premium_Kente.jpeg',
+    'Azumah Nelson': 'Azumah_Nelson.jpeg',
+    'Queen Nzinga': 'Queen_Nzinga.jpg',
+    'Marcus Garvey': 'Marcus_Garvey.jpg',
+    'Paul Biya': 'Paul_Biya.jpeg',
+    'Ephraim Amu': 'Ephraim_Amu.jpeg',
+    'Premium Kente Sene': 'Premium_Kente_Sene.jpeg',
+    'Premium Kente Nig': 'Premium_Kente_Nig.jpeg',
+    'Premium Kente II': 'IMG_1141.jpeg',
+    'Premium Kente Uga': 'IMG_2192.jpeg',
+    'Premium Kente BAW': 'IMG_1142.jpeg',
+    'Philip Gbeho': 'IMG_1140.jpeg',
+    'Premium Kente RWE': 'IMG_1138.jpeg',
+    'Paul Tomba': 'IMG_1143.jpeg',
+    'Theodosia Salome Okoh': 'Theodosia_Salome_Okoh.jpg',
+    'ICAG': 'ICAG_Pattern.png',
+    'CITG': 'CITG_Pattern.png',
+    'Unimac Kente': 'unimac-kente-pattern-sash-afrique-graduation-ghana.jpg',
+    'UEW Approved': 'IMG_2350.jpeg',
+    'Opoku Ware': 'sash-afrique-custom-kente-pattern-for-achievers.jpg.png',
+  };
+  function imageUrlFor(name){
+    const file = PATTERN_IMAGE_FILES[name] || (name.replace(/\s+/g,'_') + '.jpeg');
+    return 'https://www.sashafrique.com/media/patterns/' + file;
+  }
+
+  let patterns = [
+    p('Chinua Achebe', 5, 0, false),
+    p('Haile Selassie', 2, 1, false),
+    p('Kofi Annan', 16, 2, false),
+    p('Kwame Nkrumah', 0, 3, false),
+    p('Malcom X', 1, 4, false),
+    p('Nelson Mandela', 1, 0, false),
+    p('Patrice Lumumba', 5, 1, false),
+    p('Thabo Mbeki', 2, 2, false),
+    p('Thomas Sankara', 4, 3, false),
+    p('Yaa Asantewaa', 0, 4, false),
+    p('Ellen Johnson Sirleaf', 6, 0, false),
+    p('Tetteh Quarshie', 10, 1, false),
+    p('Jomo Kenyatta', 4, 2, false),
+    p('Julius Nyerere', 15, 3, false),
+    p('Robert Mugabe', 4, 4, false),
+    p('Strive Masiyiwa', 1, 0, false),
+    p('Wole Soyinka', 4, 1, false),
+    p('Premium Thomas Sankara', 7, 2, false),
+    p('Premium Kofi Annan', 12, 3, false),
+    p('Premium Malcom X', 16, 4, false),
+    p('Premium Yaa Asantewaa', 0, 0, false),
+    p('Premium Patrice Lumumba', 7, 1, false),
+    p('Premium Kente', 6, 2, false),
+    p('Azumah Nelson', 12, 3, false),
+    p('Queen Nzinga', 8, 4, false),
+    p('Marcus Garvey', 0, 0, false),
+    p('Paul Biya', 6, 1, false),
+    p('Ephraim Amu', 1, 2, false),
+    p('Premium Kente Sene', 14, 3, false),
+    p('Premium Kente Nig', 6, 4, false),
+    p('Premium Kente II', 5, 0, false),
+    p('Premium Kente Uga', 4, 1, false),
+    p('Premium Kente BAW', 9, 2, false),
+    p('Philip Gbeho', 18, 3, false),
+    p('Premium Kente RWE', 16, 4, false),
+    p('Paul Tomba', 13, 0, false),
+    p('Theodosia Salome Okoh', 17, 1, false),
+    p('ICAG', 17, 2, false),
+    p('CITG', 2, 3, false),
+    p('Unimac Kente', 12, 4, false),
+    p('UEW Approved', 10, 0, false),
+    p('Opoku Ware', 0, 1, false),
+  ];
+
+  function p(name, qty, colorIdx, archived){
+    return {
+      id: 'pat_' + name.toLowerCase().replace(/[^a-z0-9]+/g,'_'),
+      name, qty, colorIdx, archived: !!archived,
+      img: imageUrlFor(name)
+    };
+  }
+
+  let weavers = [
+    { id:'w_kwame', name:'Kwame', monthQty: 0, lifetimeQty: 0 },
+    { id:'w_esi',   name:'Esi',   monthQty: 0, lifetimeQty: 0 },
+    { id:'w_yaw',   name:'Yaw',   monthQty: 0, lifetimeQty: 0 },
+    { id:'w_abena', name:'Abena', monthQty: 0, lifetimeQty: 0 },
+    { id:'w_kojo',  name:'Kojo',  monthQty: 0, lifetimeQty: 0 },
+  ];
+
+  let transactions = [];
+  let txCounter = 1;
+
+  function addTx({date, action, patternName, qty, weaverName, notes}){
+    transactions.unshift({
+      id: txCounter++, date, action, patternName, qty: qty,
+      weaverName: weaverName || '—', notes: notes || ''
+    });
+  }
+
+  const months = monthsBack(6);
+  const monthlyProduction = {};
+  months.forEach(m => monthlyProduction[m.key] = 0);
+
+  function seedHistory(){
+    const today = new Date();
+    const seedPlan = [
+      ['Azumah Nelson','Kwame', 10, 5, 3],
+      ['Kwame Nkrumah','Yaw', 18, 5, 9],
+      ['ICAG','Esi', 20, 5, 14],
+      ['Nelson Mandela','Kwame', 12, 4, 5],
+      ['Queen Nzinga','Abena', 14, 4, 11],
+      ['Opoku Ware','Kojo', 16, 4, 20],
+      ['UEW Approved','Yaw', 12, 3, 2],
+      ['Tetteh Quarshie','Esi', 10, 3, 16],
+      ['Jomo Kenyatta','Kwame', 9, 3, 23],
+      ['ICAG','Yaw', 14, 2, 4],
+      ['Azumah Nelson','Kwame', 8, 2, 13],
+      ['CITG','Abena', 6, 2, 19],
+      ['Kwame Nkrumah','Yaw', 10, 1, 6],
+      ['Unimac Kente','Kojo', 8, 1, 15],
+      ['Patrice Lumumba','Esi', 7, 1, 21],
+      ['Queen Nzinga','Abena', 9, 0, 3],
+      ['Opoku Ware','Kojo', 11, 0, 8],
+      ['ICAG','Esi', 13, 0, 12],
+      ['Jomo Kenyatta','Kwame', 6, 0, 17],
+      ['Nelson Mandela','Kwame', 7, 0, 22],
+    ];
+
+    seedPlan.forEach(([patName, weaverName, qty, monthsAgo, day])=>{
+      const d = new Date(today.getFullYear(), today.getMonth()-monthsAgo, day);
+      const key = monthKey(d);
+      if(monthlyProduction.hasOwnProperty(key)) monthlyProduction[key]+=qty;
+      const w = weavers.find(w=>w.name===weaverName);
+      if(w){
+        w.lifetimeQty += qty;
+        if(monthsAgo===0) w.monthQty += qty;
+      }
+      addTx({
+        date: fmtDate(d), action:'Production Added', patternName: patName,
+        qty: qty, weaverName: weaverName, notes:''
+      });
+    });
+
+    const u1 = new Date(today.getFullYear(), today.getMonth(), 6);
+    const u2 = new Date(today.getFullYear(), today.getMonth(), 18);
+    addTx({date: fmtDate(u1), action:'Stock Used', patternName:'Azumah Nelson', qty:2, weaverName:'—', notes:"Sent to Ama's Embroidery — graduation batch"});
+    addTx({date: fmtDate(u2), action:'Stock Used', patternName:'ICAG', qty:4, weaverName:'—', notes:'Sent to Nii Embroidery Works'});
+    addTx({date: fmtDate(new Date(today.getFullYear(), today.getMonth(), 9)), action:'Stock Adjustment', patternName:'Yaa Asantewaa', qty:-1, weaverName:'—', notes:'Damaged in transit — removed from stock'});
+    addTx({date: fmtDate(new Date(today.getFullYear(), today.getMonth()-1, 2)), action:'Pattern Added', patternName:'Unimac Kente', qty:0, weaverName:'—', notes:'New pattern approved for production'});
+
+    transactions.sort((a,b)=> new Date(b.date) - new Date(a.date) || b.id - a.id);
+  }
+
+  function monthsBack(n){
+    const out = [];
+    const today = new Date();
+    for(let i=n-1;i>=0;i--){
+      const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
+      out.push({key: monthKey(d), label: d.toLocaleString('en', {month:'short'})});
+    }
+    return out;
+  }
+  function monthKey(d){ return d.getFullYear()+'-'+d.getMonth(); }
+  function fmtDate(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function fmtDateLabel(iso){
+    const d = new Date(iso+'T00:00:00');
+    return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+  }
+  function initials(name){
+    return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function imgTag(pat, cls){
+    return `<img src="${pat.img}" alt="" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('img-fallback');">`;
+  }
+
+  seedHistory();
+
+  /* ============================================================
+     STATUS HELPERS
+  ============================================================ */
+  function statusOf(qty){
+    if(qty === 0) return 'Out of Stock';
+    if(qty <= 2) return 'Low Stock';
+    return 'Available';
+  }
+  function pillClassFor(qty){
+    if(qty===0) return 'bad';
+    if(qty<=2) return 'warn';
+    return 'good';
+  }
+  function activePatterns(){ return patterns.filter(p=>!p.archived); }
+
+  /* ============================================================
+     ICON SET — consistent 1.6 stroke, rounded line icons
+  ============================================================ */
+  const ICONS = {
+    layers: '<path d="M12 3.2 21 8l-9 4.8L3 8z"/><path d="M3 13l9 4.8 9-4.8" /><path d="M3 17.8 12 22.6l9-4.8"/>',
+    box: '<path d="M12.5 2.4 21.6 7l-9.1 4.6L3.4 7z"/><path d="M3.4 7v10l9.1 4.6 9.1-4.6V7"/><path d="M12.5 11.6v10"/>',
+    alert: '<path d="M10.6 3.5 2.7 18.2A1.6 1.6 0 0 0 4.1 20.6h15.8a1.6 1.6 0 0 0 1.4-2.4L13.4 3.5a1.6 1.6 0 0 0-2.8 0Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/>',
+    x: '<circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>',
+    trend: '<polyline points="3.5 16.5 9.5 10.5 13.5 14.5 20.5 6"/><polyline points="14.5 6 20.5 6 20.5 12"/>',
+    users: '<circle cx="9" cy="8" r="3.4"/><path d="M2.4 20.2c0-3.8 3-6.5 6.6-6.5s6.6 2.7 6.6 6.5"/><circle cx="17.6" cy="8.6" r="2.7"/><path d="M16 13.9c2.8.5 4.6 2.7 4.6 5.6"/>',
+    check: '<circle cx="12" cy="12" r="9"/><polyline points="8 12.3 11 15.3 16 9.3"/>'
+  };
+  function svgIcon(name){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICONS[name]+'</svg>';
+  }
+  function svgIconBig(name){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">'+ICONS[name||'check']+'</svg>';
+  }
+
+  /* ============================================================
+     RENDER: DASHBOARD
+  ============================================================ */
+  function thisMonthProductionTotal(){
+    const key = monthKey(new Date());
+    return monthlyProduction[key] || 0;
+  }
+
+  function renderStatGrid(){
+    const ap = activePatterns();
+    const totalPatterns = ap.length;
+    const totalSashes = ap.reduce((s,p)=>s+p.qty,0);
+    const low = ap.filter(p=>p.qty>0 && p.qty<=2).length;
+    const out = ap.filter(p=>p.qty===0).length;
+    const prod = thisMonthProductionTotal();
+    const activeWeaverCount = weavers.filter(w=>w.monthQty>0).length;
+
+    const cards = [
+      {label:'Total Patterns', value:totalPatterns, icon:'layers', accent:false, delta:`${ap.filter(p=>p.qty>0).length} in stock`},
+      {label:'Total Plain Sashes', value:totalSashes, icon:'box', accent:true, delta:'Across all patterns'},
+      {label:'Low Stock Patterns', value:low, icon:'alert', accent:false, delta: low ? `${low} need restocking` : 'All healthy', flag: low>0},
+      {label:'Out of Stock', value:out, icon:'x', accent:false, delta: out ? 'Action needed' : 'None', flag: out>0},
+      {label:'Production This Month', value:prod, icon:'trend', accent:false, delta:'Units supplied'},
+      {label:'Active Weavers', value:activeWeaverCount+' / '+weavers.length, icon:'users', accent:false, delta:'Produced this month'},
+    ];
+
+    document.getElementById('statGrid').innerHTML = cards.map(c=>`
+      <div class="card stat-card ${c.accent?'accent':''}">
+        <div class="top-row">
+          <span class="label">${c.label}</span>
+          <span class="icon-box">${svgIcon(c.icon)}</span>
+        </div>
+        <div class="value">${c.value}</div>
+        <div class="delta ${c.flag?'flag':''}">${c.delta}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderLowStock(){
+    const ap = activePatterns().filter(p=>p.qty<=2).sort((a,b)=>a.qty-b.qty);
+    document.getElementById('lowStockTag').textContent = ap.length + ' pattern' + (ap.length===1?'':'s');
+    const el = document.getElementById('lowStockList');
+    if(!ap.length){
+      el.innerHTML = `<div class="empty-state" style="padding:30px 10px;">
+        ${svgIconBig('check')}
+        <p>Every pattern has healthy stock right now.</p>
+      </div>`;
+      return;
+    }
+    el.innerHTML = ap.map(pt=>`
+      <div class="low-stock-row">
+        <div class="swatch" style="background:${COLORS[pt.colorIdx]};">
+          ${imgTag(pt)}
+          <span style="position:relative; z-index:0;">${initials(pt.name)}</span>
+        </div>
+        <div class="meta">
+          <div class="name">${escapeHtml(pt.name)}</div>
+          <div class="weaver">${pt.qty} on hand</div>
+        </div>
+        <span class="pill ${pillClassFor(pt.qty)}">${statusOf(pt.qty)}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderWeaverLeaderboard(){
+    const top = [...weavers].sort((a,b)=>b.monthQty-a.monthQty).slice(0,5);
+    document.getElementById('weaverLeaderboard').innerHTML = top.map((w,i)=>`
+      <div class="weaver-row">
+        <span class="rank">${i+1}</span>
+        <span class="av">${initials(w.name)}</span>
+        <span class="name">${escapeHtml(w.name)}</span>
+        <span class="qty">${w.monthQty}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderRecentTx(){
+    const rows = transactions.slice(0,8);
+    document.getElementById('recentTxBody').innerHTML = rows.map(t=>`
+      <tr>
+        <td class="mono">${fmtDateLabel(t.date)}</td>
+        <td style="color:var(--white);">${escapeHtml(t.patternName)}</td>
+        <td>${actionTag(t.action)}</td>
+        <td class="mono">${t.qty>0 ? '+' : ''}${t.action==='Stock Used' ? '-' : ''}${Math.abs(t.qty)}</td>
+        <td>${escapeHtml(t.weaverName)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function actionTag(action){
+    const map = {
+      'Production Added': 'in', 'Stock Used':'out', 'Stock Adjustment':'adj', 'Pattern Added':'new'
+    };
+    return `<span class="action-tag ${map[action]||''}">${action}</span>`;
+  }
+
+  function renderProductionChart(){
+    const max = Math.max(1, ...months.map(m=>monthlyProduction[m.key]));
+    document.getElementById('productionChart').innerHTML = months.map(m=>{
+      const v = monthlyProduction[m.key];
+      const h = Math.max(4, Math.round((v/max)*130));
+      return `<div class="bar-col">
+        <span class="bar-val">${v}</span>
+        <div class="bar" style="height:${h}px;"></div>
+        <span class="bar-lab">${m.label}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderStockDonut(){
+    const ap = activePatterns();
+    const avail = ap.filter(p=>p.qty>2).length;
+    const low = ap.filter(p=>p.qty>0 && p.qty<=2).length;
+    const out = ap.filter(p=>p.qty===0).length;
+    const total = ap.length || 1;
+    const totalUnits = ap.reduce((s,p)=>s+p.qty,0);
+    document.getElementById('totalStockTag').textContent = totalUnits + ' units total';
+
+    const segs = [
+      {label:'Available', n:avail, color:'#33C77E'},
+      {label:'Low Stock', n:low, color:'#FAB202'},
+      {label:'Out of Stock', n:out, color:'#FF5B4E'},
+    ];
+    let acc = 0;
+    const r = 52, cx=60, cy=60, circ = 2*Math.PI*r;
+    const arcs = segs.map(s=>{
+      const frac = s.n/total;
+      const dash = frac*circ;
+      const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="16"
+        stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-acc}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>`;
+      acc += dash;
+      return el;
+    }).join('');
+
+    document.getElementById('stockDonut').innerHTML = `
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#222226" stroke-width="16"/>
+        ${arcs}
+        <circle cx="60" cy="60" r="36" fill="var(--surface-1)"/>
+        <text x="60" y="56" text-anchor="middle" font-family="Playfair Display" font-weight="700" font-size="20" fill="#F6F4EF">${total}</text>
+        <text x="60" y="72" text-anchor="middle" font-family="Inter" font-size="9" fill="#9C9A94">patterns</text>
+      </svg>
+      <div class="donut-legend">
+        ${segs.map(s=>`<div class="li"><span class="dot" style="background:${s.color}"></span>${s.label}<b>${s.n}</b></div>`).join('')}
+      </div>
+    `;
+  }
+
+  function renderDashboard(){
+    renderStatGrid();
+    renderLowStock();
+    renderWeaverLeaderboard();
+    renderRecentTx();
+    renderProductionChart();
+    renderStockDonut();
+    refreshNavCounts();
+  }
+
+  /* ============================================================
+     RENDER: PATTERN INVENTORY
+  ============================================================ */
+  function renderPatternGrid(){
+    const q = (document.getElementById('invSearch').value||'').toLowerCase().trim();
+    const statusFilter = document.getElementById('invFilterStatus').value;
+    const sort = document.getElementById('invSort').value;
+
+    let list = activePatterns().filter(p=>{
+      if(q && !p.name.toLowerCase().includes(q)) return false;
+      if(statusFilter!=='all' && statusOf(p.qty)!==statusFilter) return false;
+      return true;
+    });
+
+    list.sort((a,b)=>{
+      if(sort==='name-asc') return a.name.localeCompare(b.name);
+      if(sort==='name-desc') return b.name.localeCompare(a.name);
+      if(sort==='qty-desc') return b.qty-a.qty;
+      if(sort==='qty-asc') return a.qty-b.qty;
+      return 0;
+    });
+
+    document.getElementById('invResultCount').textContent = list.length + ' of ' + activePatterns().length + ' patterns';
+
+    const grid = document.getElementById('patternGrid');
+    if(!list.length){
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+        ${svgIconBig('x')}
+        <p>No patterns match your search or filters.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = list.map(p=>`
+      <div class="card pattern-card">
+        <div class="img-wrap" style="background:${COLORS[p.colorIdx]};">
+          ${imgTag(p)}
+          <span class="initials">${initials(p.name)}</span>
+        </div>
+        <div class="body">
+          <div class="pname">${escapeHtml(p.name)}</div>
+          <div class="qty-row"><span class="n">${p.qty}</span><span class="u">in stock</span></div>
+          <div class="weave-gauge"><div class="weave-gauge__fill" style="width:${Math.min(100, p.qty*6)}%;"></div></div>
+          <div style="margin-top:10px;"><span class="pill ${pillClassFor(p.qty)}">${statusOf(p.qty)}</span></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ============================================================
+     FORMS: ADD PRODUCTION / RECORD USAGE
+  ============================================================ */
+  function populateSelect(sel, items, getLabel, getValue){
+    sel.innerHTML = items.map(it=>`<option value="${getValue(it)}">${escapeHtml(getLabel(it))}</option>`).join('');
+  }
+
+  function refreshFormSelectors(){
+    populateSelect(document.getElementById('apWeaver'), weavers, w=>w.name, w=>w.id);
+    populateSelect(document.getElementById('apPattern'), activePatterns(), p=>p.name, p=>p.id);
+    populateSelect(document.getElementById('ruPattern'), activePatterns(), p=>p.name, p=>p.id);
+    updateApPreview();
+    updateRuPreview();
+  }
+
+  function updateApPreview(){
+    const pat = activePatterns().find(p=>p.id===document.getElementById('apPattern').value);
+    const qty = parseInt(document.getElementById('apQty').value)||0;
+    const el = document.getElementById('apPreview');
+    if(!pat){ el.innerHTML=''; return; }
+    el.innerHTML = `<span class="swatch" style="background:${COLORS[pat.colorIdx]}"></span>
+      <span><b>${pat.qty}</b> currently in stock → becomes <b>${pat.qty+qty}</b> after this entry</span>`;
+  }
+  function updateRuPreview(){
+    const pat = activePatterns().find(p=>p.id===document.getElementById('ruPattern').value);
+    const qty = parseInt(document.getElementById('ruQty').value)||0;
+    const el = document.getElementById('ruPreview');
+    if(!pat){ el.innerHTML=''; return; }
+    const after = pat.qty-qty;
+    const danger = after < 0;
+    el.innerHTML = `<span class="swatch" style="background:${COLORS[pat.colorIdx]}"></span>
+      <span><b>${pat.qty}</b> currently in stock → becomes <b style="${danger?'color:var(--bad)':''}">${Math.max(0,after)}</b> after this entry${danger ? ' — exceeds available stock' : ''}</span>`;
+  }
+
+  document.getElementById('apPattern').addEventListener('change', updateApPreview);
+  document.getElementById('apQty').addEventListener('input', updateApPreview);
+  document.getElementById('ruPattern').addEventListener('change', updateRuPreview);
+  document.getElementById('ruQty').addEventListener('input', updateRuPreview);
+
+  document.getElementById('formAddProduction').addEventListener('submit', e=>{
+    e.preventDefault();
+    const patId = document.getElementById('apPattern').value;
+    const weaverId = document.getElementById('apWeaver').value;
+    const qty = parseInt(document.getElementById('apQty').value);
+    const date = document.getElementById('apDate').value || fmtDate(new Date());
+    const pat = patterns.find(p=>p.id===patId);
+    const weaver = weavers.find(w=>w.id===weaverId);
+    if(!pat || !weaver || !qty || qty<1) return;
+
+    pat.qty += qty;
+    weaver.lifetimeQty += qty;
+    const key = monthKey(new Date(date+'T00:00:00'));
+    if(monthlyProduction.hasOwnProperty(key)) monthlyProduction[key]+=qty;
+    if(key===monthKey(new Date())) weaver.monthQty += qty;
+
+    addTx({date, action:'Production Added', patternName:pat.name, qty, weaverName:weaver.name, notes:''});
+    transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
+
+    showToast('Production logged', `+${qty} ${pat.name} from ${weaver.name}`);
+    e.target.reset();
+    renderAll();
+  });
+
+  document.getElementById('formRecordUsage').addEventListener('submit', e=>{
+    e.preventDefault();
+    const patId = document.getElementById('ruPattern').value;
+    const qty = parseInt(document.getElementById('ruQty').value);
+    const date = document.getElementById('ruDate').value || fmtDate(new Date());
+    const notes = document.getElementById('ruNotes').value;
+    const pat = patterns.find(p=>p.id===patId);
+    if(!pat || !qty || qty<1) return;
+
+    if(qty > pat.qty){
+      showToast('Cannot exceed stock', `Only ${pat.qty} ${pat.name} available — reduce the quantity.`, true);
+      return;
+    }
+    pat.qty -= qty;
+    addTx({date, action:'Stock Used', patternName:pat.name, qty, weaverName:'—', notes});
+    transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
+
+    showToast('Usage recorded', `-${qty} ${pat.name} sent to embroidery`);
+    e.target.reset();
+    renderAll();
+  });
+
+  /* ============================================================
+     RENDER: WEAVERS
+  ============================================================ */
+  function renderWeaverGrid(){
+    const q = (document.getElementById('weaverSearch').value||'').toLowerCase().trim();
+    const filter = document.getElementById('weaverFilter').value;
+    let list = weavers.filter(w=>{
+      if(q && !w.name.toLowerCase().includes(q)) return false;
+      if(filter==='active' && w.monthQty<=0) return false;
+      if(filter==='idle' && w.monthQty>0) return false;
+      return true;
+    });
+    document.getElementById('weaverResultCount').textContent = list.length + ' of ' + weavers.length + ' weavers';
+
+    const grid = document.getElementById('weaverGrid');
+    if(!list.length){
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">${svgIconBig('x')}<p>No weavers match your search.</p></div>`;
+      return;
+    }
+    grid.innerHTML = list.map(w=>`
+      <div class="card weaver-card" data-weaver-card="${w.id}">
+        <button class="wcard-delete" data-delete-weaver="${w.id}" title="Remove weaver" aria-label="Remove weaver">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 6 7 20 7"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M18.5 7 17.7 19.4A2 2 0 0 1 15.7 21H8.3a2 2 0 0 1-2-1.6L5.5 7"/><line x1="10" y1="11" x2="10" y2="16.5"/><line x1="14" y1="11" x2="14" y2="16.5"/></svg>
+        </button>
+        <div class="av-lg">${initials(w.name)}</div>
+        <div class="winfo">
+          <div class="wname">${escapeHtml(w.name)}</div>
+          <div class="wstatus" style="${w.monthQty<=0?'color:var(--ink-faint)':''}">${w.monthQty>0?'Active this month':'No production this month'}</div>
+          <div class="wstats">
+            <div class="wstat"><div class="n">${w.monthQty}</div><div class="l">This month</div></div>
+            <div class="wstat"><div class="n">${w.lifetimeQty}</div><div class="l">Lifetime</div></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('[data-delete-weaver]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const id = btn.dataset.deleteWeaver;
+        if(btn.classList.contains('armed')){
+          const w = weavers.find(w=>w.id===id);
+          weavers = weavers.filter(w=>w.id!==id);
+          showToast('Weaver removed', w ? w.name : '');
+          renderAll();
+        } else {
+          grid.querySelectorAll('.wcard-delete.armed').forEach(b=>{
+            b.classList.remove('armed');
+            b.title = 'Remove weaver';
+          });
+          btn.classList.add('armed');
+          btn.title = 'Click again to confirm removal';
+          setTimeout(()=>{ btn.classList.remove('armed'); btn.title='Remove weaver'; }, 3000);
+        }
+      });
+    });
+  }
+
+  /* ============================================================
+     RENDER: PATTERN MANAGEMENT
+  ============================================================ */
+  function renderPatternMgmt(){
+    const list = patterns;
+    const el = document.getElementById('patternMgmtList');
+    el.innerHTML = list.map(p=>`
+      <div class="pm-row">
+        <div class="thumb" style="background:${COLORS[p.colorIdx]};">
+          ${imgTag(p)}
+          <span style="position:relative;">${initials(p.name)}</span>
+        </div>
+        <div class="pminfo">
+          <div class="pmname">${escapeHtml(p.name)} ${p.archived?'<span class="badge-archived">Archived</span>':''}</div>
+          <div class="pmmeta">${p.qty} in stock · ${statusOf(p.qty)}</div>
+        </div>
+        <div class="pmactions">
+          <button class="btn btn-sm btn-ghost" data-edit-pattern="${p.id}">Edit</button>
+          <button class="btn btn-sm ${p.archived?'':'btn-danger'} btn-ghost" data-archive-pattern="${p.id}">${p.archived?'Restore':'Archive'}</button>
+        </div>
+      </div>
+    `).join('');
+
+    el.querySelectorAll('[data-archive-pattern]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const pat = patterns.find(p=>p.id===btn.dataset.archivePattern);
+        pat.archived = !pat.archived;
+        showToast(pat.archived?'Pattern archived':'Pattern restored', pat.name);
+        renderAll();
+      });
+    });
+    el.querySelectorAll('[data-edit-pattern]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const pat = patterns.find(p=>p.id===btn.dataset.editPattern);
+        openPatternModal(pat);
+      });
+    });
+  }
+
+  /* Pattern modal (add / edit) */
+  let editingPatternId = null;
+  const patternModal = document.getElementById('patternModalBackdrop');
+  function openPatternModal(pat){
+    editingPatternId = pat ? pat.id : null;
+    document.getElementById('patternModalTitle').textContent = pat ? 'Edit pattern' : 'Add pattern';
+    document.getElementById('pmName').value = pat ? pat.name : '';
+    document.getElementById('pmQty').value = pat ? pat.qty : 0;
+    document.getElementById('pmColor').value = pat ? pat.colorIdx : 0;
+    document.getElementById('pmImage').value = '';
+    patternModal.classList.add('show');
+  }
+  function closePatternModal(){ patternModal.classList.remove('show'); }
+  document.getElementById('addPatternBtn').addEventListener('click', ()=>openPatternModal(null));
+  document.getElementById('patternModalClose').addEventListener('click', closePatternModal);
+  document.getElementById('pmCancel').addEventListener('click', closePatternModal);
+  document.getElementById('pmSave').addEventListener('click', ()=>{
+    const name = document.getElementById('pmName').value.trim();
+    const qty = parseInt(document.getElementById('pmQty').value)||0;
+    const colorIdx = parseInt(document.getElementById('pmColor').value)||0;
+    if(!name){ showToast('Pattern name required','Enter a name to continue', true); return; }
+
+    if(editingPatternId){
+      const pat = patterns.find(p=>p.id===editingPatternId);
+      pat.name = name; pat.colorIdx = colorIdx;
+      showToast('Pattern updated', name);
+    } else {
+      const newPat = p(name, qty, colorIdx, false);
+      patterns.push(newPat);
+      addTx({date: fmtDate(new Date()), action:'Pattern Added', patternName:name, qty:0, weaverName:'—', notes:'New pattern added to catalogue'});
+      transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
+      showToast('Pattern added', name);
+    }
+    closePatternModal();
+    renderAll();
+  });
+
+  /* Weaver modal (add) */
+  const weaverModal = document.getElementById('weaverModalBackdrop');
+  document.getElementById('addWeaverBtn').addEventListener('click', ()=>{
+    document.getElementById('wmName').value='';
+    weaverModal.classList.add('show');
+  });
+  document.getElementById('weaverModalClose').addEventListener('click', ()=>weaverModal.classList.remove('show'));
+  document.getElementById('wmCancel').addEventListener('click', ()=>weaverModal.classList.remove('show'));
+  document.getElementById('wmSave').addEventListener('click', ()=>{
+    const name = document.getElementById('wmName').value.trim();
+    if(!name){ showToast('Weaver name required','Enter a name to continue', true); return; }
+    weavers.push({id:'w_'+Date.now(), name, monthQty:0, lifetimeQty:0});
+    weaverModal.classList.remove('show');
+    showToast('Weaver added', name);
+    renderAll();
+  });
+
+  /* ============================================================
+     RENDER: TRANSACTION HISTORY
+  ============================================================ */
+  function renderHistory(){
+    const q = (document.getElementById('histSearch').value||'').toLowerCase().trim();
+    const actionFilter = document.getElementById('histFilterAction').value;
+    let list = transactions.filter(t=>{
+      if(q && !(t.patternName.toLowerCase().includes(q) || t.weaverName.toLowerCase().includes(q))) return false;
+      if(actionFilter!=='all' && t.action!==actionFilter) return false;
+      return true;
+    });
+    document.getElementById('histResultCount').textContent = list.length + ' of ' + transactions.length + ' entries';
+    const body = document.getElementById('histBody');
+    if(!list.length){
+      body.innerHTML = `<tr><td colspan="6"><div class="empty-state">${svgIconBig('x')}<p>No transactions match your search or filters.</p></div></td></tr>`;
+      return;
+    }
+    body.innerHTML = list.map(t=>`
+      <tr>
+        <td class="mono">${fmtDateLabel(t.date)}</td>
+        <td>${actionTag(t.action)}</td>
+        <td style="color:var(--white);">${escapeHtml(t.patternName)}</td>
+        <td class="mono">${t.action==='Stock Used' ? '-' : (t.qty>0?'+':'')}${Math.abs(t.qty)}</td>
+        <td>${escapeHtml(t.weaverName)}</td>
+        <td style="color:var(--ink-faint);">${escapeHtml(t.notes||'—')}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ============================================================
+     NAV / VIEW SWITCHING
+  ============================================================ */
+  function refreshNavCounts(){
+    document.getElementById('navInventoryCount').textContent = activePatterns().length;
+    document.getElementById('navWeaverCount').textContent = weavers.length;
+    const lowCount = activePatterns().filter(p=>p.qty<=2).length;
+    const invNav = document.querySelector('.nav__item[data-view="inventory"]');
+    invNav.classList.toggle('alert', lowCount>0);
+  }
+
+  function goto(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+view).classList.add('active');
+    document.querySelectorAll('.nav__item[data-view]').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+
+  document.querySelectorAll('.nav__item[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=>goto(btn.dataset.view));
+  });
+  document.querySelectorAll('[data-goto]').forEach(btn=>{
+    btn.addEventListener('click', ()=>goto(btn.dataset.goto));
+  });
+  document.getElementById('menuToggle').addEventListener('click', ()=>{
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+
+  /* ============================================================
+     TOAST
+  ============================================================ */
+  let toastTimer;
+  function showToast(title, sub, isError){
+    const t = document.getElementById('toast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastSub').textContent = sub||'';
+    t.querySelector('.ic').style.background = isError ? '#FF5B4E' : 'var(--gold)';
+    t.querySelector('.ic').style.color = isError ? '#fff' : '#1A1300';
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+  }
+
+  /* ============================================================
+     FILTER LISTENERS
+  ============================================================ */
+  ['invSearch'].forEach(id=>document.getElementById(id).addEventListener('input', renderPatternGrid));
+  ['invFilterStatus','invSort'].forEach(id=>document.getElementById(id).addEventListener('change', renderPatternGrid));
+  ['weaverSearch'].forEach(id=>document.getElementById(id).addEventListener('input', renderWeaverGrid));
+  ['weaverFilter'].forEach(id=>document.getElementById(id).addEventListener('change', renderWeaverGrid));
+  ['histSearch'].forEach(id=>document.getElementById(id).addEventListener('input', renderHistory));
+  ['histFilterAction'].forEach(id=>document.getElementById(id).addEventListener('change', renderHistory));
+
+  /* ============================================================
+     INIT
+  ============================================================ */
+  function renderAll(){
+    renderDashboard();
+    renderPatternGrid();
+    renderWeaverGrid();
+    renderPatternMgmt();
+    renderHistory();
+    refreshFormSelectors();
+  }
+
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  document.getElementById('apDate').value = fmtDate(new Date());
+  document.getElementById('ruDate').value = fmtDate(new Date());
+
+  renderAll();
+
+})();
+</script>
+</body>
+</html>
