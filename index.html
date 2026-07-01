@@ -134,6 +134,59 @@
   .login-error.show{display:block;}
   .login-submit{width:100%; justify-content:center; margin-top:4px; padding:11px 16px;}
 
+  /* ---------- Connection status (sidebar) ---------- */
+  .conn-status{
+    margin:6px 12px 4px; padding:9px 10px; border-radius:10px;
+    background:var(--surface-1); border:1px solid var(--border-soft);
+    display:flex; align-items:center; gap:9px;
+  }
+  .conn-dot{
+    width:8px; height:8px; border-radius:50%; flex-shrink:0; background:#55554F;
+    box-shadow:0 0 0 3px transparent; transition: all .2s ease;
+  }
+  .conn-dot.good{background:var(--good); box-shadow:0 0 0 3px rgba(51,199,126,0.15);}
+  .conn-dot.bad{background:var(--bad); box-shadow:0 0 0 3px rgba(255,91,78,0.15);}
+  .conn-dot.warn{background:var(--gold); box-shadow:0 0 0 3px rgba(250,178,2,0.15);}
+  .conn-dot.busy{background:#8c8b87; animation: pulse-dot 1.1s ease-in-out infinite;}
+  @keyframes pulse-dot{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  .conn-text{flex:1; min-width:0;}
+  .conn-label{font-size:11.5px; font-weight:600; color:var(--white); line-height:1.3;}
+  .conn-sub{font-size:10px; color:var(--ink-faint); line-height:1.3;}
+  .conn-reconnect{
+    width:24px; height:24px; border-radius:7px; border:1px solid transparent; background:transparent;
+    color:var(--ink-faint); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  .conn-reconnect svg{width:14px; height:14px;}
+  .conn-reconnect:hover{background:var(--surface-3); color:var(--white);}
+  .conn-reconnect.spinning svg{animation: spin 0.9s linear infinite;}
+  @keyframes spin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
+
+  /* ---------- Data state overlay (first load) ---------- */
+  .data-state-overlay{
+    position:fixed; inset:0; z-index:100; display:none;
+    align-items:center; justify-content:center; padding:24px;
+    background:var(--bg);
+  }
+  .data-state-overlay.show{display:flex;}
+  .data-state-card{
+    max-width:420px; text-align:center;
+    background:var(--surface-1); border:1px solid var(--border); border-radius:18px;
+    padding:36px 32px; box-shadow:var(--shadow-lg);
+  }
+  .data-state-icon{
+    width:46px; height:46px; border-radius:12px; margin:0 auto 18px;
+    background:var(--gold-soft); color:var(--gold);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .data-state-icon svg{width:24px; height:24px;}
+  .data-state-card h3{font-size:18px; font-weight:700; margin-bottom:8px;}
+  .data-state-card p{font-size:13px; color:var(--ink-dim); line-height:1.5; margin:0 0 16px;}
+  .data-state-card code{
+    display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#cdae5c;
+    background:var(--surface-3); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; margin-bottom:18px; word-break:break-all; text-align:left;
+  }
+
   /* ---------- App shell ---------- */
   .app{display:flex; min-height:100vh;}
 
@@ -559,6 +612,16 @@
 <!-- ===================== APP SHELL (hidden until signed in) ===================== -->
 <div id="appShell" class="app-shell-hidden">
 
+<div class="data-state-overlay" id="dataStateOverlay">
+  <div class="data-state-card">
+    <div class="data-state-icon" id="dataStateIcon"></div>
+    <h3 id="dataStateTitle">Connecting…</h3>
+    <p id="dataStateCopy">Reaching your Google Sheet.</p>
+    <code id="dataStateCode"></code>
+    <button class="btn btn-gold" id="dataStateRetry" style="display:none;">Retry</button>
+  </div>
+</div>
+
 <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
@@ -609,6 +672,16 @@
         Transaction History
       </button>
     </nav>
+    <div class="conn-status" id="connStatus">
+      <span class="conn-dot" id="connDot"></span>
+      <div class="conn-text">
+        <div class="conn-label" id="connLabel">Connecting…</div>
+        <div class="conn-sub" id="connSub">Google Sheet</div>
+      </div>
+      <button class="conn-reconnect" id="reconnectBtn" title="Reconnect to Google Sheet" aria-label="Reconnect to Google Sheet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 4 3.5 9 8.5 9"/><polyline points="20.5 20 20.5 15 15.5 15"/><path d="M5.3 9A8 8 0 0 1 19.5 6.5L20.5 7.5"/><path d="M18.7 15A8 8 0 0 1 4.5 17.5L3.5 16.5"/></svg>
+      </button>
+    </div>
     <div class="sidebar__footer">
       <div class="avatar">EB</div>
       <div>
@@ -963,201 +1036,26 @@
 (function(){
 
   /* ============================================================
-     SAMPLE DATA
-     Pattern photography is pulled directly from Sash Afrique's
-     live Graduations catalogue (sashafrique.com/sashes/graduations).
-     Filenames below were extracted from that page's markup, so
-     these are the brand's real product photos, with a graceful
-     monogram fallback if a file ever moves.
+     CONNECTION — this app's only "database" is the Google Sheet
+     behind the Code.gs Web App. Paste your deployed Web App URL
+     below (Apps Script editor → Deploy → Manage deployments →
+     copy the URL ending in /exec). Everything else in this file
+     reads and writes through that one endpoint.
   ============================================================ */
+  const API_URL = 'PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE';
+
   const COLORS = ['#16161A','#9A6E00','#1F4631','#6E2118','#272A52'];
 
-  // Exact filenames extracted from Sash Afrique's live Graduations catalogue page —
-  // every one of the 42 patterns on that page (base editions + premium editions),
-  // confirmed per-pattern from the page's own markup, not guessed.
-  const PATTERN_IMAGE_FILES = {
-    'Chinua Achebe': 'Chinua_Achebe.jpeg',
-    'Haile Selassie': 'Haile_Selassie.jpeg',
-    'Kofi Annan': 'Kofi_Annan.jpeg',
-    'Kwame Nkrumah': 'Kwame_Nkrumah.jpeg',
-    'Malcom X': 'Malcom_X.jpeg',
-    'Nelson Mandela': 'Nelson_Mandela.jpeg',
-    'Patrice Lumumba': 'Patrice_Lumumba.jpeg',
-    'Thabo Mbeki': 'Thabo_Mbeki.jpeg',
-    'Thomas Sankara': 'Thomas_Sankara.jpeg',
-    'Yaa Asantewaa': 'Yaa_Asantewaa.jpeg',
-    'Ellen Johnson Sirleaf': 'Ellen_Johnson_Sirleaf.jpeg',
-    'Tetteh Quarshie': 'Tetteh_Quarshie.jpeg',
-    'Jomo Kenyatta': 'Jomo_Kenyatta.jpeg',
-    'Julius Nyerere': 'Julius_Nyerere.jpeg',
-    'Robert Mugabe': 'Robert_Mugabe_.jpg',
-    'Strive Masiyiwa': 'Strive_Masiyiwa.jpeg',
-    'Wole Soyinka': 'Wole_Soyinka.jpeg',
-    'Premium Thomas Sankara': 'Premium_Thomas_Sankara.jpeg',
-    'Premium Kofi Annan': 'Premium_Kofi_Annan.jpeg',
-    'Premium Malcom X': 'Premium_Malcom_X.jpeg',
-    'Premium Yaa Asantewaa': 'Premium_Yaa_Asantewaa.jpeg',
-    'Premium Patrice Lumumba': 'Premium_Patrice_Lumumba.jpeg',
-    'Premium Kente': 'Premium_Kente.jpeg',
-    'Azumah Nelson': 'Azumah_Nelson.jpeg',
-    'Queen Nzinga': 'Queen_Nzinga.jpg',
-    'Marcus Garvey': 'Marcus_Garvey.jpg',
-    'Paul Biya': 'Paul_Biya.jpeg',
-    'Ephraim Amu': 'Ephraim_Amu.jpeg',
-    'Premium Kente Sene': 'Premium_Kente_Sene.jpeg',
-    'Premium Kente Nig': 'Premium_Kente_Nig.jpeg',
-    'Premium Kente II': 'IMG_1141.jpeg',
-    'Premium Kente Uga': 'IMG_2192.jpeg',
-    'Premium Kente BAW': 'IMG_1142.jpeg',
-    'Philip Gbeho': 'IMG_1140.jpeg',
-    'Premium Kente RWE': 'IMG_1138.jpeg',
-    'Paul Tomba': 'IMG_1143.jpeg',
-    'Theodosia Salome Okoh': 'Theodosia_Salome_Okoh.jpg',
-    'ICAG': 'ICAG_Pattern.png',
-    'CITG': 'CITG_Pattern.png',
-    'Unimac Kente': 'unimac-kente-pattern-sash-afrique-graduation-ghana.jpg',
-    'UEW Approved': 'IMG_2350.jpeg',
-    'Opoku Ware': 'sash-afrique-custom-kente-pattern-for-achievers.jpg.png',
-  };
-  function imageUrlFor(name){
-    const file = PATTERN_IMAGE_FILES[name] || (name.replace(/\s+/g,'_') + '.jpeg');
-    return 'https://www.sashafrique.com/media/patterns/' + file;
-  }
-
-  let patterns = [
-    p('Chinua Achebe', 5, 0, false),
-    p('Haile Selassie', 2, 1, false),
-    p('Kofi Annan', 16, 2, false),
-    p('Kwame Nkrumah', 0, 3, false),
-    p('Malcom X', 1, 4, false),
-    p('Nelson Mandela', 1, 0, false),
-    p('Patrice Lumumba', 5, 1, false),
-    p('Thabo Mbeki', 2, 2, false),
-    p('Thomas Sankara', 4, 3, false),
-    p('Yaa Asantewaa', 0, 4, false),
-    p('Ellen Johnson Sirleaf', 6, 0, false),
-    p('Tetteh Quarshie', 10, 1, false),
-    p('Jomo Kenyatta', 4, 2, false),
-    p('Julius Nyerere', 15, 3, false),
-    p('Robert Mugabe', 4, 4, false),
-    p('Strive Masiyiwa', 1, 0, false),
-    p('Wole Soyinka', 4, 1, false),
-    p('Premium Thomas Sankara', 7, 2, false),
-    p('Premium Kofi Annan', 12, 3, false),
-    p('Premium Malcom X', 16, 4, false),
-    p('Premium Yaa Asantewaa', 0, 0, false),
-    p('Premium Patrice Lumumba', 7, 1, false),
-    p('Premium Kente', 6, 2, false),
-    p('Azumah Nelson', 12, 3, false),
-    p('Queen Nzinga', 8, 4, false),
-    p('Marcus Garvey', 0, 0, false),
-    p('Paul Biya', 6, 1, false),
-    p('Ephraim Amu', 1, 2, false),
-    p('Premium Kente Sene', 14, 3, false),
-    p('Premium Kente Nig', 6, 4, false),
-    p('Premium Kente II', 5, 0, false),
-    p('Premium Kente Uga', 4, 1, false),
-    p('Premium Kente BAW', 9, 2, false),
-    p('Philip Gbeho', 18, 3, false),
-    p('Premium Kente RWE', 16, 4, false),
-    p('Paul Tomba', 13, 0, false),
-    p('Theodosia Salome Okoh', 17, 1, false),
-    p('ICAG', 17, 2, false),
-    p('CITG', 2, 3, false),
-    p('Unimac Kente', 12, 4, false),
-    p('UEW Approved', 10, 0, false),
-    p('Opoku Ware', 0, 1, false),
-  ];
-
-  function p(name, qty, colorIdx, archived){
-    return {
-      id: 'pat_' + name.toLowerCase().replace(/[^a-z0-9]+/g,'_'),
-      name, qty, colorIdx, archived: !!archived,
-      img: imageUrlFor(name)
-    };
-  }
-
-  let weavers = [
-    { id:'w_kwame', name:'Kwame', monthQty: 0, lifetimeQty: 0 },
-    { id:'w_esi',   name:'Esi',   monthQty: 0, lifetimeQty: 0 },
-    { id:'w_yaw',   name:'Yaw',   monthQty: 0, lifetimeQty: 0 },
-    { id:'w_abena', name:'Abena', monthQty: 0, lifetimeQty: 0 },
-    { id:'w_kojo',  name:'Kojo',  monthQty: 0, lifetimeQty: 0 },
-  ];
-
+  let patterns = [];
+  let weavers = [];
   let transactions = [];
-  let txCounter = 1;
+  let months = [];
+  let monthlyProduction = {};
 
-  function addTx({date, action, patternName, qty, weaverName, notes}){
-    transactions.unshift({
-      id: txCounter++, date, action, patternName, qty: qty,
-      weaverName: weaverName || '—', notes: notes || ''
-    });
-  }
+  let connectionState = 'idle'; // idle | connecting | connected | error | unconfigured
+  let lastSyncedAt = null;
+  let hasLoadedOnce = false;
 
-  const months = monthsBack(6);
-  const monthlyProduction = {};
-  months.forEach(m => monthlyProduction[m.key] = 0);
-
-  function seedHistory(){
-    const today = new Date();
-    const seedPlan = [
-      ['Azumah Nelson','Kwame', 10, 5, 3],
-      ['Kwame Nkrumah','Yaw', 18, 5, 9],
-      ['ICAG','Esi', 20, 5, 14],
-      ['Nelson Mandela','Kwame', 12, 4, 5],
-      ['Queen Nzinga','Abena', 14, 4, 11],
-      ['Opoku Ware','Kojo', 16, 4, 20],
-      ['UEW Approved','Yaw', 12, 3, 2],
-      ['Tetteh Quarshie','Esi', 10, 3, 16],
-      ['Jomo Kenyatta','Kwame', 9, 3, 23],
-      ['ICAG','Yaw', 14, 2, 4],
-      ['Azumah Nelson','Kwame', 8, 2, 13],
-      ['CITG','Abena', 6, 2, 19],
-      ['Kwame Nkrumah','Yaw', 10, 1, 6],
-      ['Unimac Kente','Kojo', 8, 1, 15],
-      ['Patrice Lumumba','Esi', 7, 1, 21],
-      ['Queen Nzinga','Abena', 9, 0, 3],
-      ['Opoku Ware','Kojo', 11, 0, 8],
-      ['ICAG','Esi', 13, 0, 12],
-      ['Jomo Kenyatta','Kwame', 6, 0, 17],
-      ['Nelson Mandela','Kwame', 7, 0, 22],
-    ];
-
-    seedPlan.forEach(([patName, weaverName, qty, monthsAgo, day])=>{
-      const d = new Date(today.getFullYear(), today.getMonth()-monthsAgo, day);
-      const key = monthKey(d);
-      if(monthlyProduction.hasOwnProperty(key)) monthlyProduction[key]+=qty;
-      const w = weavers.find(w=>w.name===weaverName);
-      if(w){
-        w.lifetimeQty += qty;
-        if(monthsAgo===0) w.monthQty += qty;
-      }
-      addTx({
-        date: fmtDate(d), action:'Production Added', patternName: patName,
-        qty: qty, weaverName: weaverName, notes:''
-      });
-    });
-
-    const u1 = new Date(today.getFullYear(), today.getMonth(), 6);
-    const u2 = new Date(today.getFullYear(), today.getMonth(), 18);
-    addTx({date: fmtDate(u1), action:'Stock Used', patternName:'Azumah Nelson', qty:2, weaverName:'—', notes:"Sent to Ama's Embroidery — graduation batch"});
-    addTx({date: fmtDate(u2), action:'Stock Used', patternName:'ICAG', qty:4, weaverName:'—', notes:'Sent to Nii Embroidery Works'});
-    addTx({date: fmtDate(new Date(today.getFullYear(), today.getMonth(), 9)), action:'Stock Adjustment', patternName:'Yaa Asantewaa', qty:-1, weaverName:'—', notes:'Damaged in transit — removed from stock'});
-    addTx({date: fmtDate(new Date(today.getFullYear(), today.getMonth()-1, 2)), action:'Pattern Added', patternName:'Unimac Kente', qty:0, weaverName:'—', notes:'New pattern approved for production'});
-
-    transactions.sort((a,b)=> new Date(b.date) - new Date(a.date) || b.id - a.id);
-  }
-
-  function monthsBack(n){
-    const out = [];
-    const today = new Date();
-    for(let i=n-1;i>=0;i--){
-      const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
-      out.push({key: monthKey(d), label: d.toLocaleString('en', {month:'short'})});
-    }
-    return out;
-  }
   function monthKey(d){ return d.getFullYear()+'-'+d.getMonth(); }
   function fmtDate(d){
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1176,7 +1074,147 @@
     return `<img src="${pat.img}" alt="" loading="lazy" onerror="this.style.display='none'; this.parentElement.classList.add('img-fallback');">`;
   }
 
-  seedHistory();
+  function isConfigured(){
+    return !!API_URL && API_URL.indexOf('PASTE_') !== 0;
+  }
+
+  function applyData(data){
+    patterns = data.patterns || [];
+    weavers = data.weavers || [];
+    transactions = data.transactions || [];
+    months = data.months || [];
+    monthlyProduction = data.monthlyProduction || {};
+    renderAll();
+  }
+
+  async function fetchAllData(){
+    if(!isConfigured()){
+      connectionState = 'unconfigured';
+      renderConnectionStatus();
+      renderDataStateOverlay();
+      return;
+    }
+    connectionState = 'connecting';
+    renderConnectionStatus();
+    renderDataStateOverlay();
+    try{
+      const res = await fetch(API_URL + '?action=getAllData');
+      const data = await res.json();
+      if(data.error) throw new Error(data.error);
+      applyData(data);
+      connectionState = 'connected';
+      lastSyncedAt = new Date();
+      hasLoadedOnce = true;
+    } catch(err){
+      connectionState = 'error';
+      if(hasLoadedOnce){
+        showToast('Sync failed', err.message || 'Could not reach the Google Sheet.', true);
+      }
+    }
+    renderConnectionStatus();
+    renderDataStateOverlay();
+  }
+
+  async function postAction(action, payload){
+    if(!isConfigured()){
+      showToast('Not connected', 'Add your Google Sheet API URL first.', true);
+      return null;
+    }
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, payload })
+      });
+      const json = await res.json();
+      if(!json.ok) throw new Error(json.error || 'Something went wrong.');
+      applyData(json.data);
+      connectionState = 'connected';
+      lastSyncedAt = new Date();
+      renderConnectionStatus();
+      return json.result || true;
+    } catch(err){
+      showToast('Action failed', err.message || 'Could not reach the Google Sheet.', true);
+      connectionState = 'error';
+      renderConnectionStatus();
+      return null;
+    }
+  }
+
+  /* ============================================================
+     CONNECTION STATUS UI — the sidebar pill + reconnect button,
+     and a full-screen state for the very first load (loading,
+     not-yet-configured, or failed). Once data has loaded once,
+     later sync problems only show as a toast + the pill going red,
+     so a flaky reconnect never blanks out work already on screen.
+  ============================================================ */
+  function renderConnectionStatus(){
+    const dot = document.getElementById('connDot');
+    const label = document.getElementById('connLabel');
+    const sub = document.getElementById('connSub');
+    const reconnectBtn = document.getElementById('reconnectBtn');
+    if(!dot) return;
+
+    dot.className = 'conn-dot';
+    if(connectionState === 'unconfigured'){
+      dot.classList.add('warn');
+      label.textContent = 'Not connected';
+      sub.textContent = 'Sheet URL needed';
+    } else if(connectionState === 'connecting'){
+      dot.classList.add('busy');
+      label.textContent = 'Connecting…';
+      sub.textContent = 'Google Sheet';
+    } else if(connectionState === 'connected'){
+      dot.classList.add('good');
+      label.textContent = 'Connected';
+      sub.textContent = lastSyncedAt ? ('Synced ' + lastSyncedAt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})) : 'Google Sheet';
+    } else {
+      dot.classList.add('bad');
+      label.textContent = 'Connection failed';
+      sub.textContent = 'Tap to retry';
+    }
+    if(reconnectBtn) reconnectBtn.classList.toggle('spinning', connectionState === 'connecting');
+  }
+
+  function renderDataStateOverlay(){
+    const overlay = document.getElementById('dataStateOverlay');
+    if(!overlay) return;
+
+    if(hasLoadedOnce){
+      overlay.classList.remove('show');
+      return;
+    }
+
+    overlay.classList.add('show');
+    const icon = document.getElementById('dataStateIcon');
+    const title = document.getElementById('dataStateTitle');
+    const copy = document.getElementById('dataStateCopy');
+    const codeRow = document.getElementById('dataStateCode');
+    const retryBtn = document.getElementById('dataStateRetry');
+
+    if(connectionState === 'unconfigured'){
+      icon.innerHTML = svgIconBig('layers');
+      title.textContent = 'Connect your Google Sheet';
+      copy.textContent = 'Deploy Code.gs as a Web App, then paste the deployment URL into the API_URL constant near the top of this file\u2019s <script>.';
+      codeRow.style.display = '';
+      codeRow.textContent = "const API_URL = 'https://script.google.com/macros/s/.../exec';";
+      retryBtn.style.display = '';
+      retryBtn.textContent = 'I\u2019ve added the URL — reconnect';
+    } else if(connectionState === 'connecting'){
+      icon.innerHTML = svgIconBig('trend');
+      title.textContent = 'Connecting to your Google Sheet…';
+      copy.textContent = 'This only takes a moment.';
+      codeRow.style.display = 'none';
+      retryBtn.style.display = 'none';
+    } else {
+      icon.innerHTML = svgIconBig('x');
+      title.textContent = 'Couldn\u2019t reach your Google Sheet';
+      copy.textContent = 'Check that the Web App is deployed with access set to "Anyone", and that the API_URL is correct.';
+      codeRow.style.display = 'none';
+      retryBtn.style.display = '';
+      retryBtn.textContent = 'Retry';
+    }
+  }
 
   /* ============================================================
      STATUS HELPERS
@@ -1458,7 +1496,7 @@
   document.getElementById('ruPattern').addEventListener('change', updateRuPreview);
   document.getElementById('ruQty').addEventListener('input', updateRuPreview);
 
-  document.getElementById('formAddProduction').addEventListener('submit', e=>{
+  document.getElementById('formAddProduction').addEventListener('submit', async e=>{
     e.preventDefault();
     const patId = document.getElementById('apPattern').value;
     const weaverId = document.getElementById('apWeaver').value;
@@ -1468,21 +1506,19 @@
     const weaver = weavers.find(w=>w.id===weaverId);
     if(!pat || !weaver || !qty || qty<1) return;
 
-    pat.qty += qty;
-    weaver.lifetimeQty += qty;
-    const key = monthKey(new Date(date+'T00:00:00'));
-    if(monthlyProduction.hasOwnProperty(key)) monthlyProduction[key]+=qty;
-    if(key===monthKey(new Date())) weaver.monthQty += qty;
+    const btn = e.target.querySelector('button[type=submit]');
+    setBtnBusy(btn, true);
+    const result = await postAction('addProduction', { patternId: patId, weaverName: weaver.name, qty, date });
+    setBtnBusy(btn, false);
 
-    addTx({date, action:'Production Added', patternName:pat.name, qty, weaverName:weaver.name, notes:''});
-    transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
-
-    showToast('Production logged', `+${qty} ${pat.name} from ${weaver.name}`);
-    e.target.reset();
-    renderAll();
+    if(result){
+      showToast('Production logged', `+${qty} ${pat.name} from ${weaver.name}`);
+      e.target.reset();
+      document.getElementById('apDate').value = fmtDate(new Date());
+    }
   });
 
-  document.getElementById('formRecordUsage').addEventListener('submit', e=>{
+  document.getElementById('formRecordUsage').addEventListener('submit', async e=>{
     e.preventDefault();
     const patId = document.getElementById('ruPattern').value;
     const qty = parseInt(document.getElementById('ruQty').value);
@@ -1495,14 +1531,25 @@
       showToast('Cannot exceed stock', `Only ${pat.qty} ${pat.name} available — reduce the quantity.`, true);
       return;
     }
-    pat.qty -= qty;
-    addTx({date, action:'Stock Used', patternName:pat.name, qty, weaverName:'—', notes});
-    transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
 
-    showToast('Usage recorded', `-${qty} ${pat.name} sent to embroidery`);
-    e.target.reset();
-    renderAll();
+    const btn = e.target.querySelector('button[type=submit]');
+    setBtnBusy(btn, true);
+    const result = await postAction('recordUsage', { patternId: patId, qty, date, notes });
+    setBtnBusy(btn, false);
+
+    if(result){
+      showToast('Usage recorded', `-${qty} ${pat.name} sent to embroidery`);
+      e.target.reset();
+      document.getElementById('ruDate').value = fmtDate(new Date());
+    }
   });
+
+  function setBtnBusy(btn, busy){
+    if(!btn) return;
+    btn.disabled = busy;
+    btn.style.opacity = busy ? '0.6' : '';
+    btn.style.pointerEvents = busy ? 'none' : '';
+  }
 
   /* ============================================================
      RENDER: WEAVERS
@@ -1541,14 +1588,15 @@
     `).join('');
 
     grid.querySelectorAll('[data-delete-weaver]').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
+      btn.addEventListener('click', async (e)=>{
         e.stopPropagation();
         const id = btn.dataset.deleteWeaver;
         if(btn.classList.contains('armed')){
           const w = weavers.find(w=>w.id===id);
-          weavers = weavers.filter(w=>w.id!==id);
-          showToast('Weaver removed', w ? w.name : '');
-          renderAll();
+          setBtnBusy(btn, true);
+          const result = await postAction('deleteWeaver', { id });
+          setBtnBusy(btn, false);
+          if(result) showToast('Weaver removed', w ? w.name : '');
         } else {
           grid.querySelectorAll('.wcard-delete.armed').forEach(b=>{
             b.classList.remove('armed');
@@ -1586,11 +1634,13 @@
     `).join('');
 
     el.querySelectorAll('[data-archive-pattern]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.addEventListener('click', async ()=>{
         const pat = patterns.find(p=>p.id===btn.dataset.archivePattern);
-        pat.archived = !pat.archived;
-        showToast(pat.archived?'Pattern archived':'Pattern restored', pat.name);
-        renderAll();
+        const willArchive = !pat.archived;
+        setBtnBusy(btn, true);
+        const result = await postAction(willArchive ? 'archivePattern' : 'restorePattern', { id: pat.id });
+        setBtnBusy(btn, false);
+        if(result) showToast(willArchive?'Pattern archived':'Pattern restored', pat.name);
       });
     });
     el.querySelectorAll('[data-edit-pattern]').forEach(btn=>{
@@ -1617,25 +1667,26 @@
   document.getElementById('addPatternBtn').addEventListener('click', ()=>openPatternModal(null));
   document.getElementById('patternModalClose').addEventListener('click', closePatternModal);
   document.getElementById('pmCancel').addEventListener('click', closePatternModal);
-  document.getElementById('pmSave').addEventListener('click', ()=>{
+  document.getElementById('pmSave').addEventListener('click', async ()=>{
     const name = document.getElementById('pmName').value.trim();
     const qty = parseInt(document.getElementById('pmQty').value)||0;
     const colorIdx = parseInt(document.getElementById('pmColor').value)||0;
     if(!name){ showToast('Pattern name required','Enter a name to continue', true); return; }
 
+    const saveBtn = document.getElementById('pmSave');
+    setBtnBusy(saveBtn, true);
+    let result;
     if(editingPatternId){
-      const pat = patterns.find(p=>p.id===editingPatternId);
-      pat.name = name; pat.colorIdx = colorIdx;
-      showToast('Pattern updated', name);
+      result = await postAction('editPattern', { id: editingPatternId, name, colorIdx });
     } else {
-      const newPat = p(name, qty, colorIdx, false);
-      patterns.push(newPat);
-      addTx({date: fmtDate(new Date()), action:'Pattern Added', patternName:name, qty:0, weaverName:'—', notes:'New pattern added to catalogue'});
-      transactions.sort((a,b)=> new Date(b.date)-new Date(a.date) || b.id-a.id);
-      showToast('Pattern added', name);
+      result = await postAction('addPattern', { name, qty, colorIdx });
     }
-    closePatternModal();
-    renderAll();
+    setBtnBusy(saveBtn, false);
+
+    if(result){
+      showToast(editingPatternId ? 'Pattern updated' : 'Pattern added', name);
+      closePatternModal();
+    }
   });
 
   /* Weaver modal (add) */
@@ -1646,13 +1697,17 @@
   });
   document.getElementById('weaverModalClose').addEventListener('click', ()=>weaverModal.classList.remove('show'));
   document.getElementById('wmCancel').addEventListener('click', ()=>weaverModal.classList.remove('show'));
-  document.getElementById('wmSave').addEventListener('click', ()=>{
+  document.getElementById('wmSave').addEventListener('click', async ()=>{
     const name = document.getElementById('wmName').value.trim();
     if(!name){ showToast('Weaver name required','Enter a name to continue', true); return; }
-    weavers.push({id:'w_'+Date.now(), name, monthQty:0, lifetimeQty:0});
-    weaverModal.classList.remove('show');
-    showToast('Weaver added', name);
-    renderAll();
+    const saveBtn = document.getElementById('wmSave');
+    setBtnBusy(saveBtn, true);
+    const result = await postAction('addWeaver', { name });
+    setBtnBusy(saveBtn, false);
+    if(result){
+      weaverModal.classList.remove('show');
+      showToast('Weaver added', name);
+    }
   });
 
   /* ============================================================
@@ -1754,7 +1809,10 @@
   document.getElementById('apDate').value = fmtDate(new Date());
   document.getElementById('ruDate').value = fmtDate(new Date());
 
-  renderAll();
+  document.getElementById('reconnectBtn').addEventListener('click', fetchAllData);
+  document.getElementById('dataStateRetry').addEventListener('click', fetchAllData);
+
+  fetchAllData();
 
   /* ============================================================
      LOGIN GATE
