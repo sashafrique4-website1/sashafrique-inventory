@@ -976,8 +976,9 @@
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Starting quantity</label>
+          <label id="pmQtyLabel">Starting quantity</label>
           <input type="number" id="pmQty" min="0" step="1" placeholder="0">
+          <span class="field-hint" id="pmQtyHint" style="display:none;">Corrects the count directly. For normal stock in/out, use Add Production or Record Usage instead.</span>
         </div>
         <div class="field">
           <label>Accent colour</label>
@@ -1661,6 +1662,8 @@
     document.getElementById('pmQty').value = pat ? pat.qty : 0;
     document.getElementById('pmColor').value = pat ? pat.colorIdx : 0;
     document.getElementById('pmImage').value = '';
+    document.getElementById('pmQtyLabel').textContent = pat ? 'Quantity in stock' : 'Starting quantity';
+    document.getElementById('pmQtyHint').style.display = pat ? '' : 'none';
     patternModal.classList.add('show');
   }
   function closePatternModal(){ patternModal.classList.remove('show'); }
@@ -1677,7 +1680,7 @@
     setBtnBusy(saveBtn, true);
     let result;
     if(editingPatternId){
-      result = await postAction('editPattern', { id: editingPatternId, name, colorIdx });
+      result = await postAction('editPattern', { id: editingPatternId, name, colorIdx, qty });
     } else {
       result = await postAction('addPattern', { name, qty, colorIdx });
     }
